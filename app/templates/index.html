@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LeetCode CLI</title>
+  <style>
+    body {
+      background: black;
+      color: #00ff00;
+      font-family: monospace;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #terminal {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    #cli {
+      border-top: 1px solid #00ff00;
+      padding: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .visually-hidden {
+      display: none;
+    }
+
+    .cli-btn {
+      background: black;
+      border: 1px solid #00ff00;
+      color: #00ff00;
+      padding: 0.25rem 0.75rem;
+      font-family: monospace;
+      cursor: pointer;
+    }
+
+    .cli-btn:hover {
+      background: #003300;
+    }
+
+    .cli-input {
+      background: black;
+      border: none;
+      color: #00ff00;
+      flex: 1;
+      font-family: monospace;
+      outline: none;
+    }
+
+    a {
+      color: #00ff00;
+    }
+  </style>
+</head>
+<body>
+  <div id="terminal">
+    <p>&gt; 
+      
+dP                            dP    888888ba           .8888b                            dP       
+88                            88    88    `8b          88   "                            88       
+88        .d8888b. .d8888b. d8888P a88aaaa8P' .d8888b. 88aaa  88d888b. .d8888b. .d8888b. 88d888b. 
+88        88ooood8 88ooood8   88    88   `8b. 88ooood8 88     88'  `88 88ooood8 Y8ooooo. 88'  `88 
+88        88.  ... 88.  ...   88    88     88 88.  ... 88     88       88.  ...       88 88    88 
+88888888P `88888P' `88888P'   dP    dP     dP `88888P' dP     dP       `88888P' `88888P' dP    dP 
+                                                                                                  
+                                                                                                  
+    </p>
+  </div>
+
+  <div id="cli">
+    <span>&gt;</span>
+    <input id="command" class="cli-input" type="text" placeholder="enter command...">
+
+    <!-- Hidden file input -->
+    <input id="file" class="visually-hidden" type="file" accept=".json">
+    <label for="file" class="cli-btn">choose file</label>
+  </div>
+
+  <script>
+    const terminal = document.getElementById('terminal');
+    const commandInput = document.getElementById('command');
+    const fileInput = document.getElementById('file');
+
+    let problemData = null;
+
+    // Print to terminal
+    function print(msg, clickableLink = null) {
+      const p = document.createElement('p');
+      if (clickableLink) {
+        p.innerHTML = `> ${msg} → <a href="${clickableLink}" target="_blank">${clickableLink}</a>`;
+      } else {
+        p.textContent = '> ' + msg;
+      }
+      terminal.appendChild(p);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // Show welcome and instructions
+    print('Welcome! Upload your LeetCode JSON file to get started.');
+    print('Instructions: Go to <a href="https://leetcode.com/api/problems/all/" target="_blank" style="color:#00ff00;">https://leetcode.com/api/problems/all/</a>\n> Copy all text, and paste into notepad (or a text editor of choice).\n> Save as problems.json, then upload using "choose file".', true);
+
+    // Handle CLI input
+    commandInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const cmd = commandInput.value.trim();
+        if (!cmd) return;
+        print(cmd);
+        handleCommand(cmd);
+        commandInput.value = '';
+      }
+    });
+
+    function handleCommand(cmd) {
+      if (cmd === 'help') {
+        print('commands: help, random, review, difficulty, status');
+      } else if (cmd === 'status') {
+        if (problemData) {
+          print(`Loaded JSON with ${problemData.stat_status_pairs.length} problems`);
+        } else {
+          print('No JSON loaded yet');
+        }
+      } else if (cmd === 'random' || cmd === 'review') {
+        if (!problemData) {
+          print('Please upload JSON first');
+          return;
+        }
+        chooseProblem(cmd);
+      } else {
+        print('Unknown command');
+      }
+    }
+
+    function chooseProblem(mode) {
+      askDifficulty((difficulty) => {
+        let pool = problemData.stat_status_pairs.filter(p => !p.paid_only);
+
+        if (mode === 'review') {
+          pool = pool.filter(p => p.status === 'ac');
+        } else {
+          pool = pool.filter(p => p.status !== 'ac');
+        }
+
+        const levelMap = { easy: 1, medium: 2, hard: 3 };
+        if (difficulty && levelMap[difficulty]) {
+          pool = pool.filter(p => p.difficulty.level === levelMap[difficulty]);
+        }
+
+        if (!pool.length) {
+          print('No problems found for that selection.');
+          return;
+        }
+
+        const choice = pool[Math.floor(Math.random() * pool.length)];
+        const title = choice.stat.question__title;
+        const slug = choice.stat.question__title_slug;
+        const url = `https://leetcode.com/problems/${slug}/`;
+
+        print(`Problem: ${title}`, url);
+      });
+    }
+
+    function askDifficulty(callback) {
+      print('Choose difficulty (easy/medium/hard) or press Enter to skip:');
+      const input = document.createElement('input');
+      input.className = 'cli-input';
+      terminal.appendChild(input);
+      input.focus();
+
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          const val = input.value.trim().toLowerCase();
+          terminal.removeChild(input);
+          print('> ' + val);
+          callback(val || null);
+        }
+      });
+    }
+
+    // Handle JSON upload
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files?.[0];
+      if (!file) {
+        print('No file selected');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          problemData = JSON.parse(e.target.result);
+          print(`Welcome, ${problemData.user_name}.`);
+          print(`Found: ${file.name} (${problemData.num_solved}/${problemData.stat_status_pairs.length} completed problems)`);
+          print('Type "random" for a new problem or "review" to review a solved problem.');
+        } catch {
+          print('Invalid JSON');
+        }
+      };
+      reader.readAsText(file);
+    });
+  </script>
+</body>
+</html>

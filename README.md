@@ -2,6 +2,8 @@
 
 LeetRefresh is a browser-based terminal-style interface for browsing and practicing LeetCode problems. It allows users to load their LeetCode problem data from the API and interactively fetch problems by type and difficulty, all within a retro CLI aesthetic.
 
+<img src='https://i.imgur.com/GRAlPQ3.png' title='LeetRefresh' width='' alt='LeetRefresh' />
+
 ---
 
 ## Features

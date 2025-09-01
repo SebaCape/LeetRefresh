@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script defer data-domain="leetrefresh.onrender.com" src="https://plausible.io/js/script.js"></script>
   <meta charset="UTF-8">
   <title>LeetCode CLI</title>
   <style>
@@ -104,7 +105,8 @@ dP                            dP    888888ba           .8888b                   
     }
 
     // Show welcome and instructions
-    print('Welcome! Upload your LeetCode JSON file to get started.');
+    print('Welcome! If you enjoy this project, please leave a star on the repository at <a href="https://github.com/SebaCape/LeetRefresh" target="_blank" style="color: #00ff00;">https://github.com/SebaCape/LeetRefresh</a>', true);
+    print('Upload your LeetCode JSON file to get started.');
     print('Instructions: Go to <a href="https://leetcode.com/api/problems/all/" target="_blank" style="color:#00ff00;">https://leetcode.com/api/problems/all/</a>\n> Copy all text, and paste into notepad (or a text editor of choice).\n> Save as problems.json, then upload using "choose file".', true);
 
     // Handle CLI input
@@ -120,7 +122,7 @@ dP                            dP    888888ba           .8888b                   
 
     function handleCommand(cmd) {
       if (cmd === 'help') {
-        print('commands: help, random, review, difficulty, status');
+        print('commands: help, random, review, status');
       } else if (cmd === 'status') {
         if (problemData) {
           print(`Loaded JSON with ${problemData.stat_status_pairs.length} problems`);
